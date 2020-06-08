@@ -13,7 +13,7 @@ import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class PlayerCount {
+public class PlayerCountCommand implements Command {
 
     public void execute(Message message) {
         getJson()
@@ -53,13 +53,12 @@ public class PlayerCount {
 
     private Consumer<Long> sendToDiscord(Message message) {
         return playerCount ->
-                message.getChannel().subscribe(messageChannel -> {
-                    messageChannel.createEmbed(builder -> {
-                        builder.setColor(Color.GREEN);
-                        builder.setTitle("Player Count");
-                        builder.setThumbnail("https://content.invisioncic.com/f299184/monthly_2020_05/Logo_Force_TSTFE.png.ce5720e9c45f10b2776bd2e38d5e7e36.png");
-                        builder.addField("Amount of players", Long.toString(playerCount), true);
-                    }).block();
-                });
+                message.getChannel().subscribe(messageChannel ->
+                        messageChannel.createEmbed(builder -> {
+                            builder.setColor(Color.GREEN);
+                            builder.setTitle("Player Count");
+                            builder.setThumbnail("https://content.invisioncic.com/f299184/monthly_2020_05/Logo_Force_TSTFE.png.ce5720e9c45f10b2776bd2e38d5e7e36.png");
+                            builder.addField("Amount of players", Long.toString(playerCount), true);
+                        }).block());
     }
 }

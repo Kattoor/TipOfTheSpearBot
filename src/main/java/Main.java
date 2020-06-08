@@ -1,9 +1,18 @@
+import commands.AnnouncementCommand;
+import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.Channel;
+import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.discordjson.json.MessageCreateRequest;
+import discord4j.rest.entity.RestChannel;
+
+import java.math.BigInteger;
 
 public class Main {
 
@@ -11,7 +20,7 @@ public class Main {
         new Main();
     }
 
-    private CommandHandler commandHandler = new CommandHandler();
+    private final CommandHandler commandHandler = new CommandHandler();
 
     private Main() {
         final String token = "";
@@ -25,8 +34,17 @@ public class Main {
                 initCommandHandler(gateway, event.getSelf());
             });
 
+            initAnnouncements(client);
+
             gateway.onDisconnect().block();
         }
+    }
+
+    // todo: make this more flexible, extract from this class
+    private void initAnnouncements(DiscordClient client) {
+        RestChannel generalChannel = client.getChannelById(Snowflake.of(new BigInteger("621918100949827594")));
+
+        AnnouncementCommand.loadAnnouncements(generalChannel);
     }
 
     private void initCommandHandler(GatewayDiscordClient gateway, User self) {
