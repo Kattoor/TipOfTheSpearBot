@@ -23,7 +23,7 @@ public class Main {
     private final CommandHandler commandHandler = new CommandHandler();
 
     private Main() {
-        final String token = "";
+        final String token = Config.getToken();
         final DiscordClient client = DiscordClient.create(token);
 
         final GatewayDiscordClient gateway = client.login().block();
