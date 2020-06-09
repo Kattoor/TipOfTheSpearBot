@@ -1,7 +1,9 @@
-import commands.AnnouncementCommand;
-import commands.Command;
-import commands.CommandKey;
-import commands.PlayerCountCommand;
+package com.catthoor.TipOfTheSpearBot;
+
+import com.catthoor.TipOfTheSpearBot.commands.AnnouncementCommand;
+import com.catthoor.TipOfTheSpearBot.commands.Command;
+import com.catthoor.TipOfTheSpearBot.commands.CommandKey;
+import com.catthoor.TipOfTheSpearBot.commands.PlayerCountCommand;
 import discord4j.core.object.entity.Message;
 
 import java.util.Map;

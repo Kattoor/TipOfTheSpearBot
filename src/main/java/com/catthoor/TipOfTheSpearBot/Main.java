@@ -1,4 +1,6 @@
-import commands.AnnouncementCommand;
+package com.catthoor.TipOfTheSpearBot;
+
+import com.catthoor.TipOfTheSpearBot.commands.AnnouncementCommand;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;

@@ -2,3 +2,4 @@
 *.iml
 src/main/resources/app.secret.toml
 target/
+announcements.json

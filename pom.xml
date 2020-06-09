@@ -31,7 +31,7 @@
                             <archive>
                                 <manifest>
                                     <addClasspath>true</addClasspath>
-                                    <mainClass>Main</mainClass>
+                                    <mainClass>com.catthoor.TipOfTheSpearBot.Main</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

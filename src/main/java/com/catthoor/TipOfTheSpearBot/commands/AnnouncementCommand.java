@@ -1,5 +1,6 @@
-package com.catthoor.TipOfTheSpearBot;
+package com.catthoor.TipOfTheSpearBot.commands;
 
+import com.catthoor.TipOfTheSpearBot.Config;
 import discord4j.core.object.entity.Message;
 import discord4j.discordjson.json.MessageCreateRequest;
 import discord4j.rest.entity.RestChannel;
