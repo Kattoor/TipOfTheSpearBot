@@ -4,7 +4,7 @@
 
 Discord bot for [Tip of the Spear - Task Force Elite](https://www.taskforceelite.com/) by [Red Jake Studios](https://redjake.com/).
 
-###Functionality
+### Functionality
 
 #### Player Count
 **?pc**
