@@ -34,3 +34,15 @@ Returns a list of all active announcements and their IDs.
 **?announcement delete {id}**
 
 Removes the announcement with the given id, stopping it from being posted again.
+
+## ToDo
+
+### Top Server List
+
+Feature request by DUZ to implement something like [this](https://prnt.sc/sw3570).
+
+### Daily Player Stats
+
+* Today's MVP is: {player}
+* Daily most kills: {player}
+* ...
