@@ -4,14 +4,14 @@
 
 Discord bot for [Tip of the Spear - Task Force Elite](https://www.taskforceelite.com/) by [Red Jake Studios](https://redjake.com/).
 
-### Functionality
+## Functionality
 
-#### Player Count
+### Player Count
 **?pc**
 
 Displays the current player count.
 
-#### Announcements
+### Announcements
 
 Configure announcements to be posted in the General channel at certain intervals.
 
