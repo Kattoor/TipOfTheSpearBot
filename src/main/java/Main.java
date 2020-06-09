@@ -6,10 +6,6 @@ import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.Channel;
-import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.discordjson.json.MessageCreateRequest;
 import discord4j.rest.entity.RestChannel;
 
 import java.math.BigInteger;

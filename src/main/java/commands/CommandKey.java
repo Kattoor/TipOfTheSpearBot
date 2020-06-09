@@ -16,16 +16,8 @@ public class CommandKey {
         return key;
     }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
-
     public boolean isAcceptsParameters() {
         return acceptsParameters;
-    }
-
-    public void setAcceptsParameters(boolean acceptsParameters) {
-        this.acceptsParameters = acceptsParameters;
     }
 
     @Override
