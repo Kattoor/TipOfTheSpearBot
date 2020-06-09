@@ -55,6 +55,7 @@ public class AnnouncementCommand implements Command {
         if (parts.length < 2)
             return;
 
+        // todo: move author limitation to CommandHandler, into the router dictionary
         if (message.getAuthor().isEmpty() || !message.getAuthor().get().getTag().equals("RJS_Psycho#4095"))
             return;
 
