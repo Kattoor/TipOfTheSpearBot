@@ -1,4 +1,4 @@
-package commands;
+package com.catthoor.TipOfTheSpearBot;
 
 import discord4j.core.object.entity.Message;
 import discord4j.discordjson.json.MessageCreateRequest;
@@ -55,8 +55,8 @@ public class AnnouncementCommand implements Command {
         if (parts.length < 2)
             return;
 
-        // todo: move author limitation to CommandHandler, into the router dictionary
-        if (message.getAuthor().isEmpty() || !message.getAuthor().get().getTag().equals("RJS_Psycho#4095"))
+        // todo: move author limitation to com.catthoor.TipOfTheSpearBot.CommandHandler, into the router dictionary
+        if (message.getAuthor().isEmpty() || !message.getAuthor().get().getTag().equals(Config.getAnnouncementsUser()))
             return;
 
         String action = parts[1];
@@ -69,7 +69,7 @@ public class AnnouncementCommand implements Command {
                     return;
 
                 int interval = Integer.parseInt(parts[2]);
-                String text = String.join("", Arrays.copyOfRange(parts, 3, parts.length));
+                String text = String.join(" ", Arrays.copyOfRange(parts, 3, parts.length));
                 createAnnouncement(interval, text, message);
                 break;
             case "delete":

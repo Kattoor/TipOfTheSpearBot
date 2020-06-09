@@ -1,4 +1,4 @@
-package commands;
+package com.catthoor.TipOfTheSpearBot;
 
 import java.util.Objects;
 

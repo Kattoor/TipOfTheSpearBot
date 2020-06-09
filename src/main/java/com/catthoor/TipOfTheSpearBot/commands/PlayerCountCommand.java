@@ -1,4 +1,4 @@
-package commands;
+package com.catthoor.TipOfTheSpearBot;
 
 import discord4j.core.object.entity.Message;
 import discord4j.rest.util.Color;

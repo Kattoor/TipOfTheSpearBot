@@ -23,9 +23,11 @@ The created announcements get persisted to a file *announcements.json* so they s
 
 Posts {text} in the General channel every {interval} seconds.
 
-example: ?announcement create 3600 Hello, World!
+example: ?announcement create 3600 Visit us on Steam
 
 3600 seconds = 1 hour
+
+[![Visit us on Steam image](https://i.imgur.com/znrU5KW.png)](https://store.steampowered.com/app/1148810/Tip_of_the_Spear_Task_Force_Elite/)
 
 **?announcement list**
 

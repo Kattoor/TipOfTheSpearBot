@@ -38,7 +38,7 @@ public class Main {
 
     // todo: make this more flexible, extract from this class
     private void initAnnouncements(DiscordClient client) {
-        RestChannel generalChannel = client.getChannelById(Snowflake.of(new BigInteger("621918100949827594")));
+        RestChannel generalChannel = client.getChannelById(Snowflake.of(new BigInteger(Config.getGeneralChannelId())));
 
         AnnouncementCommand.loadAnnouncements(generalChannel);
     }
