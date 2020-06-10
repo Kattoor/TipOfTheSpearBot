@@ -4,8 +4,8 @@ import java.util.Objects;
 
 public class CommandKey {
 
-    private String key;
-    private boolean acceptsParameters;
+    private final String key;
+    private final boolean acceptsParameters;
 
     public CommandKey(String key, boolean acceptsParameters) {
         this.key = key;

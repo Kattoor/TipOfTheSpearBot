@@ -1,6 +1,8 @@
 package com.catthoor.TipOfTheSpearBot.commands;
 
 import com.catthoor.TipOfTheSpearBot.Config;
+import discord4j.common.util.Snowflake;
+import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.Message;
 import discord4j.discordjson.json.MessageCreateRequest;
 import discord4j.rest.entity.RestChannel;
@@ -11,6 +13,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,18 +23,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class AnnouncementCommand implements Command {
+public class AnnouncementCommand implements Command, OnLaunchAction {
 
-    public static final Map<Integer, ScheduledFuture<?>> scheduledFutures = new HashMap<>();
+    public final Map<Integer, ScheduledFuture<?>> scheduledFutures = new HashMap<>();
 
-    private static final Path filePath = Paths.get("announcements.json");
-    private static final JSONParser parser = new JSONParser();
+    private final Path filePath = Paths.get("announcements.json");
+    private final JSONParser parser = new JSONParser();
 
-    public static void loadAnnouncements(RestChannel channel) {
+    private void loadAnnouncements(RestChannel channel) {
         JSONArray announcementsArray = (JSONArray) getRoot().get("announcements");
-        Iterator iterator = announcementsArray.iterator();
-        while (iterator.hasNext()) {
-            JSONObject announcement = (JSONObject) iterator.next();
+        for (Object o : announcementsArray) {
+            JSONObject announcement = (JSONObject) o;
 
             String text = (String) announcement.get("text");
             long interval = (long) announcement.get("interval");
@@ -40,9 +42,10 @@ public class AnnouncementCommand implements Command {
             long deltaTime = currentTimeInSeconds - epochStartInSeconds;
 
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-            ScheduledFuture<?> scheduledFuture = executor.scheduleAtFixedRate(() -> {
-                channel.createMessage(MessageCreateRequest.builder().content(text).build()).block();
-            }, interval - (deltaTime % interval), interval, TimeUnit.SECONDS);
+            ScheduledFuture<?> scheduledFuture =
+                    executor.scheduleAtFixedRate(
+                            channel.createMessage(MessageCreateRequest.builder().content(text).build())::block,
+                            interval - (deltaTime % interval), interval, TimeUnit.SECONDS);
 
             scheduledFutures.put(announcementsArray.size() - 1, scheduledFuture);
         }
@@ -83,14 +86,14 @@ public class AnnouncementCommand implements Command {
         }
     }
 
-    private static boolean isNumeric(String str) {
+    private boolean isNumeric(String str) {
         for (char c : str.toCharArray()) {
             if (!Character.isDigit(c)) return false;
         }
         return true;
     }
 
-    private static JSONObject getRoot() {
+    private JSONObject getRoot() {
         try {
             String fileData = Files.exists(filePath)
                     ? Files.readString(filePath)
@@ -188,5 +191,11 @@ public class AnnouncementCommand implements Command {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onLaunch(DiscordClient client) {
+        RestChannel generalChannel = client.getChannelById(Snowflake.of(new BigInteger(Config.getGeneralChannelId())));
+        loadAnnouncements(generalChannel);
     }
 }

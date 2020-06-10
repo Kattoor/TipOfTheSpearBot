@@ -1,9 +1,7 @@
 package com.catthoor.TipOfTheSpearBot;
 
-import com.catthoor.TipOfTheSpearBot.commands.AnnouncementCommand;
-import com.catthoor.TipOfTheSpearBot.commands.Command;
-import com.catthoor.TipOfTheSpearBot.commands.CommandKey;
-import com.catthoor.TipOfTheSpearBot.commands.PlayerCountCommand;
+import com.catthoor.TipOfTheSpearBot.commands.*;
+import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.Message;
 
 import java.util.Map;
@@ -15,16 +13,20 @@ public class CommandHandler {
             Map.entry(new CommandKey("?pc", false), new PlayerCountCommand()),
             Map.entry(new CommandKey("?announcement", true), new AnnouncementCommand()));
 
+    public void performOnLaunchCommandActions(DiscordClient client) {
+        router.values().forEach(command -> {
+            if (command instanceof OnLaunchAction)
+                ((OnLaunchAction) command).onLaunch(client);
+        });
+    }
+
     private Optional<Command> getCommand(String content) {
         return router.entrySet().stream().filter(entry -> {
             CommandKey commandKey = entry.getKey();
 
             if (commandKey.isAcceptsParameters() && content.startsWith(commandKey.getKey()))
                 return true;
-            else if (commandKey.getKey().equals(content))
-                return true;
-
-            return false;
+            else return commandKey.getKey().equals(content);
         }).map(Map.Entry::getValue).findFirst();
     }
 

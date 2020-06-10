@@ -29,20 +29,12 @@ public class Main {
         if (gateway != null) {
             gateway.on(ReadyEvent.class).subscribe(event -> {
                 System.out.println("Ready");
+                commandHandler.performOnLaunchCommandActions(client);
                 initCommandHandler(gateway, event.getSelf());
             });
 
-            initAnnouncements(client);
-
             gateway.onDisconnect().block();
         }
-    }
-
-    // todo: make this more flexible, extract from this class
-    private void initAnnouncements(DiscordClient client) {
-        RestChannel generalChannel = client.getChannelById(Snowflake.of(new BigInteger(Config.getGeneralChannelId())));
-
-        AnnouncementCommand.loadAnnouncements(generalChannel);
     }
 
     private void initCommandHandler(GatewayDiscordClient gateway, User self) {
