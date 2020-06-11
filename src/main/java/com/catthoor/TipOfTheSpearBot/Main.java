@@ -1,16 +1,11 @@
 package com.catthoor.TipOfTheSpearBot;
 
-import com.catthoor.TipOfTheSpearBot.commands.AnnouncementCommand;
-import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
-import discord4j.rest.entity.RestChannel;
-
-import java.math.BigInteger;
 
 public class Main {
 
