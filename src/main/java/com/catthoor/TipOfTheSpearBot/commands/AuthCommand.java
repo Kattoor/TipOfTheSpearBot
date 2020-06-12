@@ -1,6 +1,7 @@
 package com.catthoor.TipOfTheSpearBot.commands;
 
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.MessageChannel;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,27 +25,40 @@ public class AuthCommand implements Command {
 
     @Override
     public void execute(Message message) {
-        final String content = message.getContent();
+        message.getChannel().subscribe(messageChannel -> {
+            final String content = message.getContent();
 
-        final String[] parts = content.split(" ");
+            final String[] parts = content.split(" ");
 
-        if (parts.length != 4)
-            return;
+            if (parts.length != 4) {
+                messageChannel.createMessage("Usage: ?auth {sidecarIp} {authenticationKey} {serverName}").block();
+                return;
+            }
 
-        String sidecarIp = parts[1];
-        String authKey = parts[2];
-        String serverName = parts[3];
+            String sidecarIp = parts[1];
+            String authKey = parts[2];
+            String serverName = parts[3];
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://" + sidecarIp + ":8080/ping"))
-                .header("authKey", authKey)
-                .build();
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenAccept(ok -> {
-                    message.getAuthor().ifPresent(author -> addAuthRecord(author.getTag(), authKey, serverName, sidecarIp, message));
-                });
+            if (serverName.length() < 3) {
+                messageChannel.createMessage("Server name has to be > 2 characters long").block();
+                return;
+            }
+
+            message.getAuthor().ifPresent(user -> {
+                if (serverNameAlreadyExists(serverName) && !serverRegisteredUnderUser(serverName, user.getTag())) {
+                    messageChannel.createMessage("Server name '" + serverName + "' is already in use").block();
+                } else {
+                    HttpClient client = HttpClient.newHttpClient();
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create("http://" + sidecarIp + ":8080/ping"))
+                            .header("authKey", authKey)
+                            .build();
+                    client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                            .thenApply(HttpResponse::body)
+                            .thenAccept(ok -> message.getAuthor().ifPresent(author -> addAuthRecord(author.getTag(), authKey, serverName, sidecarIp, messageChannel)));
+                }
+            });
+        });
     }
 
     private JSONObject getRoot() {
@@ -60,46 +74,76 @@ public class AuthCommand implements Command {
     }
 
 
-    private void addAuthRecord(String userTag, String authKey, String serverName, String sidecarIp, Message message) {
-        message.getChannel().subscribe(messageChannel -> {
-            JSONObject root = getRoot();
-            JSONArray authList = (JSONArray) root.get("authList");
+    private void addAuthRecord(String userTag, String authKey, String serverName, String sidecarIp, MessageChannel messageChannel) {
+        JSONObject root = getRoot();
+        JSONArray authList = (JSONArray) root.get("authList");
 
-            deleteIfAlreadyExists(authList, userTag, message);
+        deleteIfAlreadyExists(authList, userTag, messageChannel);
 
-            authList.add(new JSONObject(
-                    Map.ofEntries(
-                            Map.entry("userTag", userTag),
-                            Map.entry("authKey", authKey),
-                            Map.entry("serverName", serverName),
-                            Map.entry("sidecarIp", sidecarIp))));
+        authList.add(new JSONObject(
+                Map.ofEntries(
+                        Map.entry("userTag", userTag),
+                        Map.entry("authKey", authKey),
+                        Map.entry("serverName", serverName),
+                        Map.entry("sidecarIp", sidecarIp))));
 
-            messageChannel.createMessage("Registered authKey for user " + userTag).block();
+        messageChannel.createMessage("Registered authKey for user " + userTag).block();
 
-            write(root);
-        });
+        write(root);
     }
 
-    private void deleteIfAlreadyExists(JSONArray authList, String userTag, Message message) {
-        message.getChannel().subscribe(messageChannel -> {
-            Iterator iterator = authList.iterator();
+    /* Only one record per userTag */
+    private void deleteIfAlreadyExists(JSONArray authList, String userTag, MessageChannel messageChannel) {
+        Iterator iterator = authList.iterator();
 
-            int index = -1;
-            int i = 0;
-            boolean shortCircuit = false;
-            while (iterator.hasNext() && !shortCircuit) {
-                JSONObject o = (JSONObject) iterator.next();
-                if (o.get("userTag").equals(userTag)) {
-                    shortCircuit = true;
-                    index = i;
-                } else i++;
-            }
+        int index = -1;
+        int i = 0;
+        boolean shortCircuit = false;
+        while (iterator.hasNext() && !shortCircuit) {
+            JSONObject o = (JSONObject) iterator.next();
+            if (o.get("userTag").equals(userTag)) {
+                shortCircuit = true;
+                index = i;
+            } else i++;
+        }
 
-            if (index >= 0) {
-                authList.remove(index);
-                messageChannel.createMessage("Deleted authKey for user " + userTag).block();
-            }
-        });
+        if (index >= 0) {
+            authList.remove(index);
+            messageChannel.createMessage("Deleted authKey for user " + userTag).block();
+        }
+    }
+
+    private boolean serverNameAlreadyExists(String serverName) {
+        JSONObject root = getRoot();
+        JSONArray authList = (JSONArray) root.get("authList");
+
+        Iterator iterator = authList.iterator();
+        int index = -1;
+        int i = 0;
+
+        boolean shortCircuit = false;
+        while (iterator.hasNext() && !shortCircuit) {
+            JSONObject o = (JSONObject) iterator.next();
+            if (o.get("serverName").equals(serverName)) {
+                shortCircuit = true;
+                index = i;
+            } else i++;
+        }
+
+        return index >= 0;
+    }
+
+    private boolean serverRegisteredUnderUser(String serverName, String userTag) {
+        JSONObject root = getRoot();
+        JSONArray authList = (JSONArray) root.get("authList");
+
+        for (Object value : authList) {
+            JSONObject o = (JSONObject) value;
+            if (o.get("serverName").equals(serverName) && o.get("userTag").equals(userTag))
+                return true;
+        }
+
+        return false;
     }
 
     private void write(JSONObject root) {

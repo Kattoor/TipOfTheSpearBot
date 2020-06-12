@@ -21,13 +21,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class IpAndAuthKey {
-    private String sidecarIp;
-    private String authKey;
+class IpAuthKeyAndServerName {
+    private final String sidecarIp;
+    private final String authKey;
+    private final String serverName;
 
-    public IpAndAuthKey(String sidecarIp, String authKey) {
+    public IpAuthKeyAndServerName(String sidecarIp, String authKey, String serverName) {
         this.sidecarIp = sidecarIp;
         this.authKey = authKey;
+        this.serverName = serverName;
     }
 
     public String getSidecarIp() {
@@ -36,6 +38,10 @@ class IpAndAuthKey {
 
     public String getAuthKey() {
         return authKey;
+    }
+
+    public String getServerName() {
+        return serverName;
     }
 }
 
@@ -50,15 +56,23 @@ public class ServerCommand implements Command {
 
         final String[] parts = content.split(" ");
 
-        if (parts.length != 2)
-            return;
-
-        String serverName = parts[1];
-
-        JSONArray authList = (JSONArray) getRoot().get("authList");
-        IpAndAuthKey server = findServerByName(authList, serverName);
-
         message.getChannel().subscribe(messageChannel -> {
+            if (parts.length != 2) {
+                messageChannel.createMessage("Usage: ?server {serverName or index}");
+                return;
+            }
+
+            String serverName = parts[1];
+
+            JSONArray authList = (JSONArray) getRoot().get("authList");
+
+            IpAuthKeyAndServerName server;
+
+            if (serverName.length() < 3 && isNumeric(serverName))
+                server = findServerByListId(authList, Integer.parseInt(serverName));
+            else
+                server = findServerByName(authList, serverName);
+
             if (server == null) {
                 messageChannel.createMessage("Couldn't find server: " + serverName).block();
             } else {
@@ -69,7 +83,7 @@ public class ServerCommand implements Command {
                         .build();
                 client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                         .thenApply(HttpResponse::body)
-                        .thenAccept(data -> sendEmbed(data, serverName, messageChannel));
+                        .thenAccept(data -> sendEmbed(data, server.getServerName(), messageChannel));
             }
         });
     }
@@ -86,25 +100,39 @@ public class ServerCommand implements Command {
         }
     }
 
-    private IpAndAuthKey findServerByName(JSONArray authList, String serverName) {
+    private IpAuthKeyAndServerName findServerByName(JSONArray authList, String serverName) {
         Iterator iterator = authList.iterator();
 
-        IpAndAuthKey result = null;
+        IpAuthKeyAndServerName result = null;
         boolean shortCircuit = false;
         while (iterator.hasNext() && !shortCircuit) {
             JSONObject o = (JSONObject) iterator.next();
             if (o.get("serverName").equals(serverName)) {
                 shortCircuit = true;
-                result = new IpAndAuthKey((String) o.get("sidecarIp"), (String) o.get("authKey"));
+                result = new IpAuthKeyAndServerName((String) o.get("sidecarIp"), (String) o.get("authKey"), (String) o.get("serverName"));
             }
         }
 
         return result;
     }
 
+    private IpAuthKeyAndServerName findServerByListId(JSONArray authList, int listId) {
+        Iterator iterator = authList.iterator();
+
+        int i = 0;
+
+        while (iterator.hasNext()) {
+            if (i++ == listId) {
+                JSONObject o = (JSONObject) iterator.next();
+                return new IpAuthKeyAndServerName((String) o.get("sidecarIp"), (String) o.get("authKey"), (String) o.get("serverName"));
+            }
+        }
+
+        return null;
+    }
+
     private void sendEmbed(String data, String serverName, MessageChannel messageChannel) {
         try {
-            System.out.println(data);
             JSONArray rooms = (JSONArray) ((JSONObject) parser.parse(data)).get("rooms");
             messageChannel.createMessage("This server has " + rooms.size() + " room(s)!").block();
             rooms.forEach(room -> {
@@ -121,7 +149,6 @@ public class ServerCommand implements Command {
                 long gameLength = (long) obj.get("gameLength");
                 long numOfBots = (long) obj.get("numOfBots");
 
-
                 messageChannel.createEmbed(builder -> {
                     builder.setColor(Color.GREEN);
                     builder.setTitle("[" + serverName + "] " + roomName);
@@ -131,7 +158,6 @@ public class ServerCommand implements Command {
                     builder.addField("Blue team", blueTeam.size() > 0 ? String.join(", ", blueTeam) : "empty", false);
                     builder.addField("Red team", blueTeam.size() > 0 ? String.join(", ", redTeam) : "empty", false);
                 }).block();
-                System.out.println("sending embed7");
             });
         } catch (ParseException e) {
             e.printStackTrace();
@@ -155,5 +181,12 @@ public class ServerCommand implements Command {
         mapRotation.forEach(mapName -> maps.add((String) mapName));
 
         return maps;
+    }
+
+    private boolean isNumeric(String str) {
+        for (char c : str.toCharArray()) {
+            if (!Character.isDigit(c)) return false;
+        }
+        return true;
     }
 }

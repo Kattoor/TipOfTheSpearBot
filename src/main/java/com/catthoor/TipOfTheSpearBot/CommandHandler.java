@@ -13,7 +13,8 @@ public class CommandHandler {
             Map.entry(new CommandKey("?pc", false), new PlayerCountCommand()),
             Map.entry(new CommandKey("?announcement", true), new AnnouncementCommand()),
             Map.entry(new CommandKey("?auth", true), new AuthCommand()),
-            Map.entry(new CommandKey("?server", true), new ServerCommand()));
+            Map.entry(new CommandKey("?server", true), new ServerCommand()),
+            Map.entry(new CommandKey("?servers", false), new ServersCommand()));
 
     public void performOnLaunchCommandActions(DiscordClient client) {
         router.values().forEach(command -> {
@@ -25,10 +26,7 @@ public class CommandHandler {
     private Optional<Command> getCommand(String content) {
         return router.entrySet().stream().filter(entry -> {
             CommandKey commandKey = entry.getKey();
-
-            if (commandKey.isAcceptsParameters() && content.startsWith(commandKey.getKey()))
-                return true;
-            else return commandKey.getKey().equals(content);
+            return content.split(" ")[0].equals(commandKey.getKey());
         }).map(Map.Entry::getValue).findFirst();
     }
 

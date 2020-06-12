@@ -42,3 +42,10 @@ public class Main {
         });
     }
 }
+
+
+// todo:
+//  x   don't accept key when server-name already in list
+//  x   server-name atleast 3 chars long
+//  x   ?servers in ServersCommand
+//      ?server {number}
