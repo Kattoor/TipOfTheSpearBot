@@ -162,7 +162,7 @@ public class ServerCommand implements Command {
                         builder.addField(":red_circle: Red Spear", redTeam.size() > 0 ? redTeam.stream().map(name -> "`" + name + "`").collect(Collectors.joining("\n")) : "\u200b", true);
                     }
 
-                    builder.addField(map + ", " + getGameMode(gameMode) + ", " + (numOfBots == 0 ? "no" : numOfBots) + " bots)", "\u200b", false);
+                    builder.addField(map + ", " + getGameMode(gameMode) + ", " + (numOfBots == 0 ? "no" : numOfBots) + " bots", "\u200b", false);
                 }).block();
             });
         } catch (ParseException e) {
