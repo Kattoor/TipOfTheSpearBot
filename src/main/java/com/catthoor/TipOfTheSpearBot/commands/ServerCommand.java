@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 class IpAuthKeyAndServerName {
     private final String sidecarIp;
@@ -133,7 +134,6 @@ public class ServerCommand implements Command {
 
     private void sendEmbed(String data, String serverName, MessageChannel messageChannel) {
         try {
-            System.out.println(data);
             JSONArray rooms = (JSONArray) ((JSONObject) parser.parse(data)).get("rooms");
             messageChannel.createMessage("This server has " + rooms.size() + " room(s)!").block();
             rooms.forEach(room -> {
@@ -154,10 +154,15 @@ public class ServerCommand implements Command {
                     builder.setColor(Color.GREEN);
                     builder.setTitle("[" + serverName + "] " + roomName);
                     builder.setThumbnail("https://content.invisioncic.com/f299184/monthly_2020_05/Logo_Force_TSTFE.png.ce5720e9c45f10b2776bd2e38d5e7e36.png");
-                    builder.addField("Current map", map, false);
-                    builder.addField("Amount of bots", String.valueOf(numOfBots), false);
-                    builder.addField("Blue team", blueTeam.size() > 0 ? String.join(", ", blueTeam) : "empty", false);
-                    builder.addField("Red team", blueTeam.size() > 0 ? String.join(", ", redTeam) : "empty", false);
+
+                    if (blueTeam.size() == 0 && redTeam.size() == 0) {
+                        builder.addField("Server is empty", "\u200b", false);
+                    } else {
+                        builder.addField(":blue_circle: Task Force Elite", blueTeam.size() > 0 ? blueTeam.stream().map(name -> ":united_nations: " + name).collect(Collectors.joining("\n")) : "empty", true);
+                        builder.addField(":red_circle: Red Spear", redTeam.size() > 0 ? redTeam.stream().map(name -> ":pirate_flag: " + name).collect(Collectors.joining("\n")) : "empty", true);
+                    }
+
+                    builder.addField(map + " (" + (numOfBots == 0 ? "no" : numOfBots) + " bots)", "\u200b", false);
                 }).block();
             });
         } catch (ParseException e) {
