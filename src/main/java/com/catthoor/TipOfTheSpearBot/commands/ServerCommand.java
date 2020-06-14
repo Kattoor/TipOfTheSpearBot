@@ -158,8 +158,8 @@ public class ServerCommand implements Command {
                     if (blueTeam.size() == 0 && redTeam.size() == 0) {
                         builder.addField("Server is empty", "\u200b", false);
                     } else {
-                        builder.addField(":blue_circle: Task Force Elite", blueTeam.size() > 0 ? blueTeam.stream().map(name -> ":united_nations: " + name).collect(Collectors.joining("\n")) : "empty", true);
-                        builder.addField(":red_circle: Red Spear", redTeam.size() > 0 ? redTeam.stream().map(name -> ":pirate_flag: " + name).collect(Collectors.joining("\n")) : "empty", true);
+                        builder.addField(":blue_circle: Task Force Elite", blueTeam.size() > 0 ? blueTeam.stream().map(name -> ":united_nations: " + name).collect(Collectors.joining("\n")) : "\u200b", true);
+                        builder.addField(":red_circle: Red Spear", redTeam.size() > 0 ? redTeam.stream().map(name -> ":pirate_flag: " + name).collect(Collectors.joining("\n")) : "\u200b", true);
                     }
 
                     builder.addField(map + " (" + (numOfBots == 0 ? "no" : numOfBots) + " bots)", "\u200b", false);
