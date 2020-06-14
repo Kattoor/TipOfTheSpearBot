@@ -133,6 +133,7 @@ public class ServerCommand implements Command {
 
     private void sendEmbed(String data, String serverName, MessageChannel messageChannel) {
         try {
+            System.out.println(data);
             JSONArray rooms = (JSONArray) ((JSONObject) parser.parse(data)).get("rooms");
             messageChannel.createMessage("This server has " + rooms.size() + " room(s)!").block();
             rooms.forEach(room -> {
