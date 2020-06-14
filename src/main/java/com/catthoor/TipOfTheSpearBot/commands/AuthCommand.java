@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class AuthCommand implements Command {
 
-    private final Path filePath = Paths.get("sidecar-auth.json");
+    private final Path filePath = Paths.get("../sidecar-auth.json");
     private final JSONParser parser = new JSONParser();
 
     @Override
