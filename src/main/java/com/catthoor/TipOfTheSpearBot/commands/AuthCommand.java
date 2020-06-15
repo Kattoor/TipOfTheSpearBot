@@ -1,27 +1,19 @@
 package com.catthoor.TipOfTheSpearBot.commands;
 
+import com.catthoor.TipOfTheSpearBot.utilities.SideCarUtil;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 
 public class AuthCommand implements Command {
-
-    private final Path filePath = Paths.get("../sidecar-auth.json");
-    private final JSONParser parser = new JSONParser();
 
     @Override
     public void execute(Message message) {
@@ -61,22 +53,9 @@ public class AuthCommand implements Command {
         });
     }
 
-    private JSONObject getRoot() {
-        try {
-            String fileData = Files.exists(filePath)
-                    ? Files.readString(filePath)
-                    : "{\"authList\": []}";
-            return (JSONObject) parser.parse(fileData);
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-            return new JSONObject(Map.of("authList", new JSONArray()));
-        }
-    }
-
-
     private void addAuthRecord(String userTag, String authKey, String serverName, String sidecarIp, MessageChannel messageChannel) {
-        JSONObject root = getRoot();
-        JSONArray authList = (JSONArray) root.get("authList");
+        JSONObject root = SideCarUtil.getRoot();
+        JSONArray authList = SideCarUtil.getAuthList();
 
         deleteIfAlreadyExists(authList, userTag, messageChannel);
 
@@ -89,7 +68,7 @@ public class AuthCommand implements Command {
 
         messageChannel.createMessage("Registered authKey for user " + userTag).block();
 
-        write(root);
+        SideCarUtil.write(root);
     }
 
     /* Only one record per userTag */
@@ -114,8 +93,7 @@ public class AuthCommand implements Command {
     }
 
     private boolean serverNameAlreadyExists(String serverName) {
-        JSONObject root = getRoot();
-        JSONArray authList = (JSONArray) root.get("authList");
+        JSONArray authList = SideCarUtil.getAuthList();
 
         Iterator iterator = authList.iterator();
         int index = -1;
@@ -134,8 +112,7 @@ public class AuthCommand implements Command {
     }
 
     private boolean serverRegisteredUnderUser(String serverName, String userTag) {
-        JSONObject root = getRoot();
-        JSONArray authList = (JSONArray) root.get("authList");
+        JSONArray authList = SideCarUtil.getAuthList();
 
         for (Object value : authList) {
             JSONObject o = (JSONObject) value;
@@ -144,13 +121,5 @@ public class AuthCommand implements Command {
         }
 
         return false;
-    }
-
-    private void write(JSONObject root) {
-        try {
-            Files.writeString(filePath, root.toJSONString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
