@@ -59,7 +59,7 @@ public class ServerCommand implements Command {
 
         message.getChannel().subscribe(messageChannel -> {
             if (parts.length != 2) {
-                messageChannel.createMessage("Usage: ?server {serverName or index}");
+                messageChannel.createMessage("Usage: !server {serverName or index}");
                 return;
             }
 
