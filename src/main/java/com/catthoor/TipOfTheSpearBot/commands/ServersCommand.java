@@ -29,7 +29,7 @@ public class ServersCommand implements Command {
         message.getChannel().subscribe(messageChannel -> {
             messageChannel.createEmbed(builder -> {
                 builder.setColor(Color.GREEN);
-                builder.setTitle("Servers");
+                builder.setTitle(":taskforceelite: Servers :redspear:");
                 builder.setThumbnail("https://content.invisioncic.com/f299184/monthly_2020_05/Logo_Force_TSTFE.png.ce5720e9c45f10b2776bd2e38d5e7e36.png");
                 for (int i = 0; i < serverNames.size(); i++) {
                     String serverName = serverNames.get(i);
