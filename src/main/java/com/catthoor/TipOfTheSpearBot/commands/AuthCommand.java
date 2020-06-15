@@ -31,7 +31,7 @@ public class AuthCommand implements Command {
             final String[] parts = content.split(" ");
 
             if (parts.length != 4) {
-                messageChannel.createMessage("Usage: ?auth {sidecarIp} {authenticationKey} {serverName}").block();
+                messageChannel.createMessage("Usage: !auth {sidecarIp} {authenticationKey} {serverName}").block();
                 return;
             }
 
