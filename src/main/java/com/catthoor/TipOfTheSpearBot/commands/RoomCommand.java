@@ -1,12 +1,15 @@
 package com.catthoor.TipOfTheSpearBot.commands;
 
+import com.catthoor.TipOfTheSpearBot.Main;
 import com.catthoor.TipOfTheSpearBot.model.PlayerInfo;
 import com.catthoor.TipOfTheSpearBot.model.Room;
 import com.catthoor.TipOfTheSpearBot.model.Rooms;
 import com.catthoor.TipOfTheSpearBot.utilities.GameModeUtil;
 import com.catthoor.TipOfTheSpearBot.utilities.SideCarUtil;
 import com.google.gson.Gson;
+import discord4j.core.object.Embed;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
 
 import java.io.IOException;
@@ -57,6 +60,9 @@ public class RoomCommand implements Command {
 
                     builder.addField(room.getMap() + ", " + GameModeUtil.getGameMode(room.getGameMode()) + ", " + (room.getNumOfBots() == 0 ? "no" : room.getNumOfBots()) + " bots", "\u200b", false);
                 }).block();
+
+
+                removePreviousRoomPosts(messageChannel, roomName);
             });
         });
     }
@@ -80,5 +86,38 @@ public class RoomCommand implements Command {
         }
 
         return rooms;
+    }
+
+    private void removePreviousRoomPosts(MessageChannel messageChannel, String roomName) {
+        Optional<Message> optionalLastMessage = messageChannel.getLastMessage().blockOptional();
+        if (optionalLastMessage.isEmpty())
+            return;
+        Message lastMessage = optionalLastMessage.get();
+
+        Optional<List<Message>> optionalPreviousBotMessages = messageChannel.getMessagesBefore(lastMessage.getId())
+                .take(20)
+                .filter(this::isBotMessage)
+                .collectList().blockOptional();
+        if (optionalPreviousBotMessages.isEmpty())
+            return;
+        List<Message> previousBotMessages = optionalPreviousBotMessages.get();
+
+        previousBotMessages.forEach(previousMessage -> {
+            List<Embed> embeds = previousMessage.getEmbeds();
+            embeds.forEach(embed -> {
+                embed.getTitle().ifPresent(title -> {
+                    if (title.equals("Room " + roomName)) {
+                        previousMessage.delete().block();
+                    }
+                });
+            });
+        });
+    }
+
+    private boolean isBotMessage(Message m) {
+        if (m.getAuthor().isEmpty())
+            return false;
+        String author = m.getAuthor().get().getTag();
+        return author.equals(Main.botTag);
     }
 }

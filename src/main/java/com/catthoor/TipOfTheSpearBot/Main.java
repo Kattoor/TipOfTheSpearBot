@@ -15,11 +15,15 @@ public class Main {
 
     private final CommandHandler commandHandler = new CommandHandler();
 
+    public static String botTag;
+
     private Main() {
         final String token = Config.getToken();
         final DiscordClient client = DiscordClient.create(token);
 
         final GatewayDiscordClient gateway = client.login().block();
+        if (gateway != null)
+            gateway.getSelf().blockOptional().ifPresent(bot -> botTag = bot.getTag());
 
         if (gateway != null) {
             gateway.on(ReadyEvent.class).subscribe(event -> {
