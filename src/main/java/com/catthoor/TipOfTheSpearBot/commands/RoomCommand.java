@@ -51,8 +51,8 @@ public class RoomCommand implements Command {
                     if (blueTeam.size() == 0 && redTeam.size() == 0) {
                         builder.addField("Server is empty", "\u200b", false);
                     } else {
-                        builder.addField(":taskforceelite: Task Force Elite", blueTeam.size() > 0 ? blueTeam.stream().map(name -> "`" + name + "`").collect(Collectors.joining("\n")) : "\u200b", true);
-                        builder.addField(":redspear: Red Spear", redTeam.size() > 0 ? redTeam.stream().map(name -> "`" + name + "`").collect(Collectors.joining("\n")) : "\u200b", true);
+                        builder.addField(":taskforceelite: Task Force Elite", blueTeam.size() > 0 ? blueTeam.stream().map(playerInfo -> "`" + playerInfo.getDisplayName() + "`").collect(Collectors.joining("\n")) : "\u200b", true);
+                        builder.addField(":redspear: Red Spear", redTeam.size() > 0 ? redTeam.stream().map(playerInfo -> "`" + playerInfo.getDisplayName() + "`").collect(Collectors.joining("\n")) : "\u200b", true);
                     }
 
                     builder.addField(room.getMap() + ", " + GameModeUtil.getGameMode(room.getGameMode()) + ", " + (room.getNumOfBots() == 0 ? "no" : room.getNumOfBots()) + " bots", "\u200b", false);
