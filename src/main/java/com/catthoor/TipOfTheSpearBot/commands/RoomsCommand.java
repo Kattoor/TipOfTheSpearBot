@@ -6,6 +6,7 @@ import com.catthoor.TipOfTheSpearBot.utilities.GameModeUtil;
 import com.catthoor.TipOfTheSpearBot.utilities.SideCarUtil;
 import com.google.gson.Gson;
 import discord4j.core.object.entity.Message;
+import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 
 import java.io.IOException;
@@ -13,31 +14,59 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class RoomsCommand implements Command {
 
+    private Message sentEmbed = null;
+
+    private Consumer<EmbedCreateSpec> getEmbedBuilder(Consumer<EmbedCreateSpec> optionalExtraBuild) {
+        return builder -> {
+            builder.setColor(Color.GREEN);
+            builder.setTitle("Rooms");
+            builder.setThumbnail("https://content.invisioncic.com/f299184/monthly_2020_05/Logo_Force_TSTFE.png.ce5720e9c45f10b2776bd2e38d5e7e36.png");
+
+            if (optionalExtraBuild == null)
+                builder.addField("No rooms", "\u200b", false);
+            else
+                optionalExtraBuild.accept(builder);
+        };
+    }
+
+
     @Override
     public void execute(Message message) {
-        List<IpAuthKeyAndServerName> servers = SideCarUtil.getAliveServers(SideCarUtil.getAuthList());
-        List<Room> rooms = getRooms(servers);
+        List<IpAuthKeyAndServerName> servers = SideCarUtil.getServers(SideCarUtil.getAuthList());
+        List<CompletableFuture<List<Room>>> roomsFutures = getRooms(servers);
+        List<Room> rooms = new ArrayList<>();
 
-        message.getChannel().subscribe(messageChannel -> {
-            messageChannel.createEmbed(builder -> {
-                builder.setColor(Color.GREEN);
-                builder.setTitle("Rooms");
-                builder.setThumbnail("https://content.invisioncic.com/f299184/monthly_2020_05/Logo_Force_TSTFE.png.ce5720e9c45f10b2776bd2e38d5e7e36.png");
+        message.getChannel().subscribe(messageChannel ->
+                messageChannel.createEmbed(getEmbedBuilder(null)).blockOptional().ifPresent(e -> sentEmbed = e));
 
+        roomsFutures.forEach(future ->
+                future.thenAccept(roomsOfSameServer -> {
+                    if (roomsOfSameServer.size() > 0) {
+                        rooms.addAll(roomsOfSameServer);
+                        sendEmbed(rooms);
+                    }
+                }));
+    }
+
+    private void sendEmbed(List<Room> rooms) {
+        if (sentEmbed != null) {
+            sentEmbed.edit(spec -> spec.setEmbed(getEmbedBuilder(builder -> {
                 StringBuilder stringBuilder = new StringBuilder();
-                for (int i = 0; i < rooms.size(); i++) {
-                    Room room = rooms.get(i);
+
+                for (Room room : rooms) {
                     int amountOfPlayers = room.getBlueTeam().size() + room.getRedTeam().size();
 
                     stringBuilder
                             .append("`")
-                            .append(i)
-                            .append(", ")
                             .append(room.getRoomName())
                             .append(", ")
                             .append(amountOfPlayers)
@@ -49,29 +78,38 @@ public class RoomsCommand implements Command {
                             .append("\n");
                 }
 
-                builder.addField("Id, name, players, mode, map", stringBuilder.toString(), false);
-            }).block();
-        });
+                builder.addField("Name, players, mode, map", stringBuilder.toString(), false);
+            }))).block();
+        }
     }
 
-
-
-    private List<Room> getRooms(List<IpAuthKeyAndServerName> servers) {
+    private List<CompletableFuture<List<Room>>> getRooms(List<IpAuthKeyAndServerName> servers) {
         HttpClient client = HttpClient.newHttpClient();
-        List<Room> rooms = new ArrayList<>();
+        List<CompletableFuture<List<Room>>> rooms = new ArrayList<>();
 
         for (IpAuthKeyAndServerName server : servers) {
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("http://" + server.getSidecarIp() + ":8080/server"))
                     .header("authKey", server.getAuthKey())
+                    .timeout(Duration.ofSeconds(3))
                     .build();
 
-            try {
-                String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-                rooms.addAll(new Gson().fromJson(body, Rooms.class).getRooms());
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            }
+
+            CompletableFuture<List<Room>> listCompletableFuture = CompletableFuture.supplyAsync(() -> {
+                List<Room> roomsList = new ArrayList<>();
+                try {
+                    String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+                    roomsList = new Gson().fromJson(body, Rooms.class).getRooms();
+                } catch (HttpTimeoutException e) {
+                    System.out.println("Timeout for server " + server.getServerName());
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return roomsList;
+            });
+
+            rooms.add(listCompletableFuture);
         }
 
         return rooms;

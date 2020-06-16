@@ -15,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,19 +29,15 @@ public class RoomCommand implements Command {
             final String[] parts = content.split(" ");
 
             if (parts.length < 2) {
-                messageChannel.createMessage("Usage: !server {index}").block();
+                messageChannel.createMessage("Usage: !server {serverName}").block();
                 return;
             }
 
-            int index = Integer.parseInt(parts[1]);
+            String roomName = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
 
             List<IpAuthKeyAndServerName> servers = SideCarUtil.getAliveServers(SideCarUtil.getAuthList());
             List<Room> rooms = getRooms(servers);
-            Optional<Room> optionalRoom = Optional.empty();
-            for (int i = 0; i < rooms.size(); i++) {
-                if (i == index)
-                    optionalRoom = Optional.of(rooms.get(i));
-            }
+            Optional<Room> optionalRoom = rooms.stream().filter(r -> r.getRoomName().equalsIgnoreCase(roomName)).findFirst();
 
             optionalRoom.ifPresent(room -> {
                 List<PlayerInfo> blueTeam = room.getBlueTeam();
