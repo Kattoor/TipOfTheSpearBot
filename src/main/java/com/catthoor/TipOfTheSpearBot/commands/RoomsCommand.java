@@ -7,8 +7,6 @@ import com.catthoor.TipOfTheSpearBot.utilities.SideCarUtil;
 import com.google.gson.Gson;
 import discord4j.core.object.entity.Message;
 import discord4j.rest.util.Color;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,14 +14,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class RoomsCommand implements Command {
 
     @Override
     public void execute(Message message) {
-        List<IpAuthKeyAndServerName> servers = getServers(SideCarUtil.getAuthList());
+        List<IpAuthKeyAndServerName> servers = SideCarUtil.getAliveServers(SideCarUtil.getAuthList());
         List<Room> rooms = getRooms(servers);
 
         message.getChannel().subscribe(messageChannel -> {
@@ -39,6 +36,8 @@ public class RoomsCommand implements Command {
 
                     stringBuilder
                             .append("`")
+                            .append(i)
+                            .append(", ")
                             .append(room.getRoomName())
                             .append(", ")
                             .append(amountOfPlayers)
@@ -50,27 +49,12 @@ public class RoomsCommand implements Command {
                             .append("\n");
                 }
 
-                builder.addField("Name, players, mode, map", stringBuilder.toString(), false);
+                builder.addField("Id, name, players, mode, map", stringBuilder.toString(), false);
             }).block();
         });
     }
 
-    private List<IpAuthKeyAndServerName> getServers(JSONArray authList) {
-        Iterator iterator = authList.iterator();
 
-        List<IpAuthKeyAndServerName> servers = new ArrayList<>();
-
-        while (iterator.hasNext()) {
-            JSONObject o = (JSONObject) iterator.next();
-            IpAuthKeyAndServerName server = new IpAuthKeyAndServerName(
-                    (String) o.get("sidecarIp"),
-                    (String) o.get("authKey"),
-                    (String) o.get("serverName"));
-            servers.add(server);
-        }
-
-        return servers;
-    }
 
     private List<Room> getRooms(List<IpAuthKeyAndServerName> servers) {
         HttpClient client = HttpClient.newHttpClient();

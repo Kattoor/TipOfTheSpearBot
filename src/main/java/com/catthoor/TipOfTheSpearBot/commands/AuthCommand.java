@@ -55,7 +55,7 @@ public class AuthCommand implements Command {
 
     private void addAuthRecord(String userTag, String authKey, String serverName, String sidecarIp, MessageChannel messageChannel) {
         JSONObject root = SideCarUtil.getRoot();
-        JSONArray authList = SideCarUtil.getAuthList();
+        JSONArray authList = SideCarUtil.getAuthList(root);
 
         deleteIfAlreadyExists(authList, userTag, messageChannel);
 

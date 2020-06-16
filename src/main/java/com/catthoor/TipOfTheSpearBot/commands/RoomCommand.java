@@ -8,15 +8,15 @@ import com.catthoor.TipOfTheSpearBot.utilities.SideCarUtil;
 import com.google.gson.Gson;
 import discord4j.core.object.entity.Message;
 import discord4j.rest.util.Color;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class RoomCommand implements Command {
@@ -28,18 +28,21 @@ public class RoomCommand implements Command {
             final String[] parts = content.split(" ");
 
             if (parts.length < 2) {
-                messageChannel.createMessage("Usage: !server {serverName}").block();
+                messageChannel.createMessage("Usage: !server {index}").block();
                 return;
             }
 
-            String roomName = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
+            int index = Integer.parseInt(parts[1]);
 
-            List<IpAuthKeyAndServerName> servers = getServers(SideCarUtil.getAuthList());
+            List<IpAuthKeyAndServerName> servers = SideCarUtil.getAliveServers(SideCarUtil.getAuthList());
             List<Room> rooms = getRooms(servers);
-            Optional<Room> optionalRoom = rooms.stream().filter(r -> r.getRoomName().equalsIgnoreCase(roomName)).findFirst();
+            Optional<Room> optionalRoom = Optional.empty();
+            for (int i = 0; i < rooms.size(); i++) {
+                if (i == index)
+                    optionalRoom = Optional.of(rooms.get(i));
+            }
 
             optionalRoom.ifPresent(room -> {
-
                 List<PlayerInfo> blueTeam = room.getBlueTeam();
                 List<PlayerInfo> redTeam = room.getRedTeam();
 
@@ -59,23 +62,6 @@ public class RoomCommand implements Command {
                 }).block();
             });
         });
-    }
-
-    private List<IpAuthKeyAndServerName> getServers(JSONArray authList) {
-        Iterator iterator = authList.iterator();
-
-        List<IpAuthKeyAndServerName> servers = new ArrayList<>();
-
-        while (iterator.hasNext()) {
-            JSONObject o = (JSONObject) iterator.next();
-            IpAuthKeyAndServerName server = new IpAuthKeyAndServerName(
-                    (String) o.get("sidecarIp"),
-                    (String) o.get("authKey"),
-                    (String) o.get("serverName"));
-            servers.add(server);
-        }
-
-        return servers;
     }
 
     private List<Room> getRooms(List<IpAuthKeyAndServerName> servers) {
