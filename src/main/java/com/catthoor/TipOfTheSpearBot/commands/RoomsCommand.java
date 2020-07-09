@@ -3,8 +3,9 @@ package com.catthoor.TipOfTheSpearBot.commands;
 import com.catthoor.TipOfTheSpearBot.Main;
 import com.catthoor.TipOfTheSpearBot.model.Room;
 import com.catthoor.TipOfTheSpearBot.model.Rooms;
+import com.catthoor.TipOfTheSpearBot.utilities.TfeServerCredentials;
 import com.catthoor.TipOfTheSpearBot.utilities.GameModeUtil;
-import com.catthoor.TipOfTheSpearBot.utilities.SideCarUtil;
+import com.catthoor.TipOfTheSpearBot.utilities.TfeServerCredentialsUtil;
 import com.google.gson.Gson;
 import discord4j.core.object.Embed;
 import discord4j.core.object.entity.Message;
@@ -44,8 +45,9 @@ public class RoomsCommand implements Command {
 
     @Override
     public void execute(Message message) {
-        List<IpAuthKeyAndServerName> servers = SideCarUtil.getServers(SideCarUtil.getAuthList());
-        List<CompletableFuture<List<Room>>> roomsFutures = getRooms(servers);
+        List<TfeServerCredentials> tfeServerCredentials = TfeServerCredentialsUtil.getDiscordCredentials();
+        List<CompletableFuture<List<Room>>> roomsFutures = getRooms(tfeServerCredentials);
+
         List<Room> rooms = new ArrayList<>();
 
         message.getChannel().subscribe(messageChannel ->
@@ -83,31 +85,45 @@ public class RoomsCommand implements Command {
                             .append("\n");
                 }
 
+                builder.setFooter("!commands - lists all available commands", null);
+
                 builder.addField("Name, players, mode, map", stringBuilder.toString(), false);
             }))).block();
         }
     }
 
-    private List<CompletableFuture<List<Room>>> getRooms(List<IpAuthKeyAndServerName> servers) {
+    private List<CompletableFuture<List<Room>>> getRooms(List<TfeServerCredentials> credentials) {
         HttpClient client = HttpClient.newHttpClient();
         List<CompletableFuture<List<Room>>> rooms = new ArrayList<>();
 
-        for (IpAuthKeyAndServerName server : servers) {
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://" + server.getSidecarIp() + ":8080/server"))
-                    .header("authKey", server.getAuthKey())
+        for (TfeServerCredentials credential : credentials) {
+            String url = "http://185.183.182.44/api/canlogin?ip=" + credential.getIp() + "&username=" + credential.getName() + "&password=" + credential.getPassword();
+            System.out.println(url);
+            HttpRequest requestToken = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(3))
                     .build();
-
 
             CompletableFuture<List<Room>> listCompletableFuture = CompletableFuture.supplyAsync(() -> {
                 List<Room> roomsList = new ArrayList<>();
                 try {
-                    String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+                    String token = client.send(requestToken, HttpResponse.BodyHandlers.ofString()).body();
+
+                    System.out.println(token);
+
+                    HttpRequest requestRooms = HttpRequest.newBuilder()
+                            .uri(URI.create("http://185.183.182.44/api/getrooms"))
+                            .header("token", token)
+                            .timeout(Duration.ofSeconds(3))
+                            .build();
+
+                    String body = client.send(requestRooms, HttpResponse.BodyHandlers.ofString()).body();
+
+                    System.out.println(body);
+
                     roomsList = new Gson().fromJson(body, Rooms.class).getRooms();
                 } catch (HttpTimeoutException e) {
-                    System.out.println("Timeout for server " + server.getServerName());
+                    System.out.println("Timeout for server " + credential.getIp());
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }

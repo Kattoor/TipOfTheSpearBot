@@ -12,9 +12,9 @@ public class CommandHandler {
     private final Map<CommandKey, Command> router = Map.ofEntries(
             Map.entry(new CommandKey("!pc", false), new PlayerCountCommand()),
             Map.entry(new CommandKey("!announcement", true), new AnnouncementCommand()),
-            Map.entry(new CommandKey("!auth", true), new AuthCommand()),
             Map.entry(new CommandKey("!rooms", false), new RoomsCommand()),
-            Map.entry(new CommandKey("!room", true), new RoomCommand()));
+            Map.entry(new CommandKey("!commands", false), new HelpCommand())
+            /*Map.entry(new CommandKey("!room", true), new RoomCommand())*/);
 
     public void performOnLaunchCommandActions(DiscordClient client) {
         router.values().forEach(command -> {
