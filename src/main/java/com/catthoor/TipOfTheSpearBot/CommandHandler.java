@@ -2,7 +2,9 @@ package com.catthoor.TipOfTheSpearBot;
 
 import com.catthoor.TipOfTheSpearBot.commands.*;
 import discord4j.core.DiscordClient;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Message;
+import discord4j.gateway.GatewayClient;
 
 import java.util.Map;
 import java.util.Optional;
@@ -13,13 +15,14 @@ public class CommandHandler {
             Map.entry(new CommandKey("!pc", false), new PlayerCountCommand()),
             Map.entry(new CommandKey("!announcement", true), new AnnouncementCommand()),
             Map.entry(new CommandKey("!rooms", false), new RoomsCommand()),
-            Map.entry(new CommandKey("!commands", false), new HelpCommand())
+            Map.entry(new CommandKey("!commands", false), new HelpCommand()),
+            Map.entry(new CommandKey("!liveserverlist", false), new LiveServerListCommand())
             /*Map.entry(new CommandKey("!room", true), new RoomCommand())*/);
 
-    public void performOnLaunchCommandActions(DiscordClient client) {
+    public void performOnLaunchCommandActions(DiscordClient client, GatewayDiscordClient gateway) {
         router.values().forEach(command -> {
             if (command instanceof OnLaunchAction)
-                ((OnLaunchAction) command).onLaunch(client);
+                ((OnLaunchAction) command).onLaunch(client, gateway);
         });
     }
 

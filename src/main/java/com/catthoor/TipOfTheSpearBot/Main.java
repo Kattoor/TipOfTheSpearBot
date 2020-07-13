@@ -28,7 +28,7 @@ public class Main {
         if (gateway != null) {
             gateway.on(ReadyEvent.class).subscribe(event -> {
                 System.out.println("Ready");
-                commandHandler.performOnLaunchCommandActions(client);
+                commandHandler.performOnLaunchCommandActions(client, gateway);
                 initCommandHandler(gateway, event.getSelf());
             });
 

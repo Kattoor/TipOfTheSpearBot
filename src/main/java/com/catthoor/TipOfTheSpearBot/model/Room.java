@@ -14,8 +14,9 @@ public class Room {
     private int maxPlayer;
     private int gameLength;
     private int numOfBots;
+    private String dsc;
 
-    public Room(int gameMode, String region, String sessionType, String map, String roomName, List<PlayerInfo> blueTeam, List<PlayerInfo> redTeam, List<String> mapRotation, int maxPlayer, int gameLength, int numOfBots) {
+    public Room(int gameMode, String region, String sessionType, String map, String roomName, List<PlayerInfo> blueTeam, List<PlayerInfo> redTeam, List<String> mapRotation, int maxPlayer, int gameLength, int numOfBots, String dsc) {
         this.gameMode = gameMode;
         this.region = region;
         this.sessionType = sessionType;
@@ -27,6 +28,7 @@ public class Room {
         this.maxPlayer = maxPlayer;
         this.gameLength = gameLength;
         this.numOfBots = numOfBots;
+        this.dsc = dsc;
     }
 
     public Room() {
@@ -75,5 +77,9 @@ public class Room {
 
     public int getNumOfBots() {
         return numOfBots;
+    }
+
+    public String getDsc() {
+        return dsc;
     }
 }

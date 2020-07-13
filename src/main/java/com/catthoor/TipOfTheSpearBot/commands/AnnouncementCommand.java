@@ -3,8 +3,10 @@ package com.catthoor.TipOfTheSpearBot.commands;
 import com.catthoor.TipOfTheSpearBot.Config;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Message;
 import discord4j.discordjson.json.MessageCreateRequest;
+import discord4j.gateway.GatewayClient;
 import discord4j.rest.entity.RestChannel;
 import discord4j.rest.util.Color;
 import org.json.simple.JSONArray;
@@ -194,7 +196,7 @@ public class AnnouncementCommand implements Command, OnLaunchAction {
     }
 
     @Override
-    public void onLaunch(DiscordClient client) {
+    public void onLaunch(DiscordClient client, GatewayDiscordClient gateway) {
         RestChannel generalChannel = client.getChannelById(Snowflake.of(new BigInteger(Config.getGeneralChannelId())));
         loadAnnouncements(generalChannel);
     }

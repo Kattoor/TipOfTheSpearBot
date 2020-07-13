@@ -13,7 +13,11 @@ public class Config {
     }
 
     public static String getGeneralChannelId() {
-        return toml.getString("discord.channel.general.id." + environment);
+        return toml.getString("discord.channel.id.general." + environment);
+    }
+
+    public static String getLiveServerListChannelId() {
+        return toml.getString("discord.channel.id.live-server-list." + environment);
     }
 
     public static String getAnnouncementsUser() {
